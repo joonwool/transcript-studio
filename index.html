@@ -214,39 +214,63 @@ mark.hg{background:var(--hg);border-radius:3px;padding:1px 3px;cursor:pointer;bo
   <div id="v-url">
     <div class="hero">
       <h1>유튜브 영상으로<br><em>영어 공부</em>하기</h1>
-      <p>유튜브 주소를 붙여넣으면<br>트랜스크립트가 자동으로 불러와져요</p>
+      <p>URL 자동 불러오기 또는<br>트랜스크립트 직접 붙여넣기</p>
     </div>
 
-    <div class="url-card">
-      <div class="url-top">
-        <span class="url-icon">▶️</span>
-        <span class="url-label">YouTube URL</span>
+    <!-- 탭 전환 -->
+    <div style="display:flex;background:var(--sur2);border-radius:var(--r);padding:4px;margin-bottom:14px;gap:4px">
+      <button id="tab-url" onclick="switchInput('url')" style="flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:var(--sur);color:var(--ac);box-shadow:var(--sh);transition:all .2s">▶️ URL 입력</button>
+      <button id="tab-paste" onclick="switchInput('paste')" style="flex:1;padding:10px;border:none;border-radius:10px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;background:transparent;color:var(--txm);transition:all .2s">📋 직접 붙여넣기</button>
+    </div>
+
+    <!-- URL 입력 -->
+    <div id="input-url">
+      <div class="url-card">
+        <div class="url-top">
+          <span class="url-icon">▶️</span>
+          <span class="url-label">YouTube URL</span>
+        </div>
+        <input class="url-input" id="yt-url" type="url"
+          placeholder="https://www.youtube.com/watch?v=..."
+          inputmode="url">
+        <div class="url-hint">
+          예시: <code style="font-size:11px;color:var(--ac)">youtube.com/watch?v=dQw4w9WgXcQ</code>
+        </div>
       </div>
-      <input class="url-input" id="yt-url" type="url"
-        placeholder="https://www.youtube.com/watch?v=..."
-        inputmode="url">
-      <div class="url-hint">
-        예시: <code style="font-size:11px;color:var(--ac)">youtube.com/watch?v=dQw4w9WgXcQ</code>
+      <button class="btn" onclick="fetchTranscript()">트랜스크립트 불러오기 →</button>
+    </div>
+
+    <!-- 직접 붙여넣기 -->
+    <div id="input-paste" style="display:none">
+      <div class="url-card">
+        <div class="url-top">
+          <span class="url-icon">📋</span>
+          <span class="url-label">트랜스크립트 붙여넣기</span>
+        </div>
+        <textarea id="manual-txt" style="width:100%;padding:14px;border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tx);background:transparent;min-height:160px;resize:none;line-height:1.8" placeholder="유튜브 트랜스크립트를 여기에 붙여넣으세요&#10;&#10;예:&#10;And today we're going to talk about...&#10;This is something that a lot of people..."></textarea>
+      </div>
+      <button class="btn" onclick="loadManual()">분석 시작 →</button>
+      <div style="background:var(--acl);border-radius:var(--r);padding:16px;margin-top:14px;border:1px solid #C8E0C4">
+        <div class="slbl" style="color:var(--ac);margin-bottom:10px">📱 유튜브 트랜스크립트 복사하는 법</div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
+          <div style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">1</div>
+          <p style="font-size:13px;color:var(--tx2);line-height:1.6">크롬으로 <strong style="color:var(--tx)">youtube.com</strong> 접속 후 영상 열기</p>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
+          <div style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">2</div>
+          <p style="font-size:13px;color:var(--tx2);line-height:1.6">영상 제목 아래 <strong style="color:var(--tx)">···</strong> → <strong style="color:var(--tx)">트랜스크립트 열기</strong></p>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
+          <div style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">3</div>
+          <p style="font-size:13px;color:var(--tx2);line-height:1.6">텍스트 <strong style="color:var(--tx)">꾹 누르기</strong> → 전체 선택 → 복사</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">4</div>
+          <p style="font-size:13px;color:var(--tx2);line-height:1.6">위 칸에 <strong style="color:var(--tx)">붙여넣기</strong> → 분석 시작</p>
+        </div>
       </div>
     </div>
 
-    <button class="btn" id="load-btn" onclick="fetchTranscript()">트랜스크립트 불러오기 →</button>
-
-    <div class="how-card" style="background:var(--acl);border-radius:var(--r);padding:16px;margin-top:20px;border:1px solid #C8E0C4">
-      <div class="slbl" style="color:var(--ac);margin-bottom:10px">사용 방법</div>
-      <div class="how-step" style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
-        <div class="how-num" style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">1</div>
-        <p style="font-size:13px;color:var(--tx2);line-height:1.6">유튜브 앱에서 영상 재생 → <strong style="color:var(--tx)">주소 복사</strong></p>
-      </div>
-      <div class="how-step" style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start">
-        <div class="how-num" style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">2</div>
-        <p style="font-size:13px;color:var(--tx2);line-height:1.6">위 칸에 붙여넣기 → <strong style="color:var(--tx)">불러오기</strong> 버튼</p>
-      </div>
-      <div class="how-step" style="display:flex;gap:10px;align-items:flex-start">
-        <div class="how-num" style="width:22px;height:22px;background:var(--ac);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">3</div>
-        <p style="font-size:13px;color:var(--tx2);line-height:1.6">문장 선택 → <strong style="color:var(--tx)">저장·하이라이트·AI 해설</strong></p>
-      </div>
-    </div>
   </div>
 
   <!-- STEP 2: LOADING -->
@@ -471,8 +495,20 @@ function resetHome() {
   show('v-url');
   document.getElementById('ai-panel').style.display = 'none';
   document.getElementById('yt-url').value = '';
-  const ma = document.getElementById('manual-area');
-  if (ma) ma.remove();
+}
+
+function switchInput(mode) {
+  const isUrl = mode === 'url';
+  document.getElementById('input-url').style.display = isUrl ? 'block' : 'none';
+  document.getElementById('input-paste').style.display = isUrl ? 'none' : 'block';
+  const tabUrl = document.getElementById('tab-url');
+  const tabPaste = document.getElementById('tab-paste');
+  tabUrl.style.background = isUrl ? 'var(--sur)' : 'transparent';
+  tabUrl.style.color = isUrl ? 'var(--ac)' : 'var(--txm)';
+  tabUrl.style.boxShadow = isUrl ? 'var(--sh)' : 'none';
+  tabPaste.style.background = isUrl ? 'transparent' : 'var(--sur)';
+  tabPaste.style.color = isUrl ? 'var(--txm)' : 'var(--ac)';
+  tabPaste.style.boxShadow = isUrl ? 'none' : 'var(--sh)';
 }
 
 function updateMeta() {
