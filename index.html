@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Transcript Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE8;
+    --border: #E5E0D8;
+    --text: #1A1714;
+    --text-secondary: #6B6460;
+    --text-muted: #A09890;
+    --accent: #2D5A27;
+    --accent-light: #EAF2E8;
+    --accent-mid: #4A8A42;
+    --highlight-yellow: #FFF3C4;
+    --highlight-yellow-border: #F5D86A;
+    --highlight-blue: #D6EAFF;
+    --highlight-blue-border: #7BC4FF;
+    --highlight-pink: #FFE0E8;
+    --highlight-pink-border: #FFB3C8;
+    --quiz-correct: #D4F0D0;
+    --quiz-wrong: #FFD6D6;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 24px rgba(0,0,0,0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  .nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .logo span { color: var(--accent); font-style: italic; }
+  .nav-streak {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .nav-streak .fire { font-size: 16px; }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-top: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    letter-spacing: 0.1px;
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* SCREENS */
+  .screen { display: none; padding: 20px; padding-bottom: 80px; }
+  .screen.active { display: block; }
+
+  /* PASTE SCREEN */
+  .paste-area {
+    background: var(--surface);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+  }
+  .paste-area:focus-within {
+    border-color: var(--accent);
+    border-style: solid;
+  }
+  .paste-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .paste-textarea {
+    width: 100%;
+    min-height: 140px;
+    border: none;
+    outline: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    background: transparent;
+    resize: none;
+  }
+  .paste-textarea::placeholder { color: var(--text-muted); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-secondary {
+    padding: 8px 14px;
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:active { transform: scale(0.97); }
+
+  .sample-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+  .sample-note a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  /* TRANSCRIPT VIEW */
+  .transcript-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .transcript-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+  .transcript-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .tool-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .tool-chip.active {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tool-chip:active { transform: scale(0.96); }
+
+  .transcript-body {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    line-height: 1.9;
+    font-size: 15px;
+    color: var(--text);
+    user-select: text;
+    -webkit-user-select: text;
+    box-shadow: var(--shadow);
+  }
+  .transcript-body .line {
+    margin-bottom: 2px;
+    padding: 2px 0;
+  }
+
+  /* HIGHLIGHT COLORS */
+  mark.hl-yellow { background: var(--highlight-yellow); border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+  mark.hl-blue { background: var(--highlight-blue); border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+  mark.hl-pink { background: var(--highlight-pink); border-radius: 3px; padding: 1px 2px; cursor: pointer; }
+
+  /* SELECTION POPUP */
+  .selection-popup {
+    position: fixed;
+    background: var(--text);
+    border-radius: 10px;
+    padding: 6px 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 500;
+    box-shadow: var(--shadow-md);
+    display: none;
+    transform: translateX(-50%);
+  }
+  .selection-popup.show { display: flex; }
+  .sel-btn {
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .sel-btn:hover { background: rgba(255,255,255,0.15); }
+  .sel-btn.yellow { color: #FFD700; }
+  .sel-btn.blue { color: #7BC4FF; }
+  .sel-btn.pink { color: #FFB3C8; }
+
+  /* AI PANEL */
+  .ai-panel {
+    margin-top: 16px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .ai-panel-header {
+    padding: 14px 16px;
+    background: var(--accent-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+  }
+  .ai-panel-header h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    flex: 1;
+  }
+  .ai-panel-body { padding: 16px; }
+  .ai-loading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 8px 0;
+  }
+  .dots span {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-mid);
+    animation: bounce 1.2s infinite;
+    margin: 0 1px;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+  .ai-result { font-size: 14px; line-height: 1.8; color: var(--text); }
+  .ai-result strong { color: var(--accent); font-weight: 600; }
+  .ai-result .vocab-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ai-result .vocab-item:last-child { border-bottom: none; }
+  .vocab-word { font-weight: 600; font-size: 15px; min-width: 100px; }
+  .vocab-def { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .vocab-example { font-size: 12px; color: var(--text-muted); font-style: italic; margin-top: 2px; }
+
+  /* WORDBOOK SCREEN */
+  .wordbook-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .wordbook-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+  }
+  .wordbook-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .word-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: transform 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .word-card.yellow-card { border-left-color: var(--highlight-yellow-border); }
+  .word-card.blue-card { border-left-color: var(--highlight-blue-border); }
+  .word-card.pink-card { border-left-color: var(--highlight-pink-border); }
+  .word-card:active { transform: scale(0.98); }
+
+  .word-card-content { flex: 1; }
+  .word-card-word { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .word-card-context {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    font-style: italic;
+  }
+  .word-card-def {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .word-card-actions { display: flex; flex-direction: column; gap: 6px; }
+  .icon-btn {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+  .icon-btn:active { transform: scale(0.9); }
+  .icon-btn.delete:active { background: var(--quiz-wrong); border-color: #ffb3b3; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; line-height: 1.7; }
+
+  /* QUIZ SCREEN */
+  .quiz-header {
+    margin-bottom: 24px;
+  }
+  .quiz-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .quiz-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .quiz-counter { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+  .quiz-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    margin-bottom: 20px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .quiz-type { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .quiz-question {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .quiz-context { font-size: 13px; color: var(--text-muted); font-style: italic; line-height: 1.6; }
+
+  .quiz-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .quiz-option {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+    transition: all 0.2s;
+    line-height: 1.5;
+  }
+  .quiz-option:active:not(.disabled) { transform: scale(0.98); }
+  .quiz-option.correct { background: var(--quiz-correct); border-color: #5cb85c; color: #2d6e2d; }
+  .quiz-option.wrong { background: var(--quiz-wrong); border-color: #e57373; color: #c0392b; }
+  .quiz-option.disabled { cursor: default; }
+
+  .quiz-feedback {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback strong { color: var(--text); font-weight: 600; }
+
+  .quiz-nav { display: flex; gap: 10px; }
+  .quiz-nav .btn-primary { flex: 1; }
+
+  .quiz-result {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .quiz-result .score {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .quiz-result p { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
+  .quiz-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .quiz-empty .icon { font-size: 40px; margin-bottom: 12px; }
+  .quiz-empty p { font-size: 14px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* WORD DETAIL MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    display: none;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px;
+    width: 100%;
+    animation: slideUp 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-word { font-family: 'DM Serif Display', serif; font-size: 32px; margin-bottom: 6px; }
+  .modal-pos { font-size: 12px; color: var(--accent); font-weight: 600; margin-bottom: 12px; letter-spacing: 0.5px; }
+  .modal-def { font-size: 15px; line-height: 1.7; color: var(--text); margin-bottom: 12px; }
+  .modal-example { font-size: 13px; color: var(--text-muted); font-style: italic; line-height: 1.6; padding: 12px; background: var(--surface2); border-radius: var(--radius-sm); }
+  .modal-source { font-size: 11px; color: var(--text-muted); margin-top: 10px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { flex: 1; }
+
+  /* FILTER CHIPS */
+  .filter-row { display: flex; gap: 6px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; }
+  .filter-row::-webkit-scrollbar { display: none; }
+  .filter-chip {
+    padding: 5px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .filter-chip.active { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .stat-pill {
+    flex: 1;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    padding: 10px 8px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-pill .num { font-size: 20px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat-pill .lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; letter-spacing: 0.3px; }
+
+  /* SECTION TITLES */
+  .section-tag {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-top">
+    <div class="logo">Transcript<span>Studio</span></div>
+    <div class="nav-streak"><span class="fire">🔥</span><span id="streak-count">3</span>일 연속</div>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('home')">학습</button>
+    <button class="tab-btn" onclick="switchTab('wordbook')">단어장</button>
+    <button class="tab-btn" onclick="switchTab('quiz')">퀴즈</button>
+  </div>
+</nav>
+
+<!-- HOME / TRANSCRIPT SCREEN -->
+<div id="screen-home" class="screen active">
+
+  <!-- PASTE VIEW -->
+  <div id="view-paste">
+    <div class="paste-area">
+      <div class="paste-label">Transcript</div>
+      <textarea class="paste-textarea" id="paste-input" placeholder="유튜브 트랜스크립트를 여기에 붙여넣으세요&#10;&#10;예: 00:01 And now we're going to talk about..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="loadTranscript()">분석 시작 →</button>
+    <p class="sample-note">또는 <a href="#" onclick="loadSample()">샘플 트랜스크립트</a>로 먼저 체험해보세요</p>
+  </div>
+
+  <!-- TRANSCRIPT VIEW -->
+  <div id="view-transcript" style="display:none">
+    <div class="transcript-header">
+      <div>
+        <div class="transcript-title" id="t-title">Learning English</div>
+        <div class="transcript-meta" id="t-meta">오늘 학습 • 0개 하이라이트</div>
+      </div>
+      <button class="btn-secondary" onclick="resetTranscript()">↩</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="tool-chip active" id="chip-highlight" onclick="toggleMode('highlight')">✏️ 하이라이트</div>
+      <div class="tool-chip" id="chip-ai" onclick="analyzeAI()">✨ AI 해설</div>
+      <div class="tool-chip" id="chip-vocab" onclick="analyzeVocab()">📖 어휘 분석</div>
+    </div>
+
+    <div class="transcript-body" id="transcript-body"></div>
+
+    <div class="ai-panel" id="ai-panel" style="display:none">
+      <div class="ai-panel-header" onclick="toggleAiPanel()">
+        <span>✨</span>
+        <h3 id="ai-panel-title">AI 해설</h3>
+        <span id="ai-chevron">▲</span>
+      </div>
+      <div class="ai-panel-body" id="ai-panel-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WORDBOOK SCREEN -->
+<div id="screen-wordbook" class="screen">
+  <div class="wordbook-header">
+    <div>
+      <div class="wordbook-title">단어장</div>
+      <div class="wordbook-count" id="wb-count">0개 저장됨</div>
+    </div>
+    <button class="btn-secondary" onclick="startQuiz()" id="quiz-start-btn" style="display:none">퀴즈 →</button>
+  </div>
+
+  <div class="stats-bar" id="stats-bar" style="display:none">
+    <div class="stat-pill"><div class="num" id="stat-all">0</div><div class="lbl">전체</div></div>
+    <div class="stat-pill"><div class="num" id="stat-learned">0</div><div class="lbl">숙지</div></div>
+    <div class="stat-pill"><div class="num" id="stat-review">0</div><div class="lbl">복습 필요</div></div>
+  </div>
+
+  <div class="filter-row" id="filter-row" style="display:none">
+    <div class="filter-chip active" onclick="filterWords('all',this)">전체</div>
+    <div class="filter-chip" onclick="filterWords('yellow',this)">🟡 단어</div>
+    <div class="filter-chip" onclick="filterWords('blue',this)">🔵 문장</div>
+    <div class="filter-chip" onclick="filterWords('pink',this)">🩷 표현</div>
+    <div class="filter-chip" onclick="filterWords('review',this)">복습 필요</div>
+  </div>
+
+  <div id="wordbook-list"></div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="screen-quiz" class="screen">
+  <div id="quiz-content"></div>
+</div>
+
+<!-- SELECTION POPUP -->
+<div class="selection-popup" id="sel-popup">
+  <button class="sel-btn yellow" onclick="highlightSelected('yellow')">🟡 단어</button>
+  <button class="sel-btn blue" onclick="highlightSelected('blue')">🔵 문장</button>
+  <button class="sel-btn pink" onclick="highlightSelected('pink')">🩷 표현</button>
+  <button class="sel-btn" onclick="saveSelectedWord()">+ 저장</button>
+  <button class="sel-btn" onclick="askAISelected()">AI ✨</button>
+</div>
+
+<!-- WORD DETAIL MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-word" id="modal-word"></div>
+    <div class="modal-pos" id="modal-pos"></div>
+    <div class="modal-def" id="modal-def"></div>
+    <div class="modal-example" id="modal-example"></div>
+    <div class="modal-source" id="modal-source"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="toggleLearned()" id="modal-learned-btn">✓ 숙지 표시</button>
+      <button class="btn-secondary" onclick="deleteWord()" style="color:#e57373; border-color:#ffcdd2">🗑 삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+let wordbook = JSON.parse(localStorage.getItem('ts_wordbook') || '[]');
+let currentTranscript = '';
+let highlightMode = 'highlight';
+let aiPanelOpen = true;
+let currentFilter = 'all';
+let currentWordIdx = null;
+let quizData = [];
+let quizIdx = 0;
+let quizScore = 0;
+let quizAnswered = false;
+
+const SAMPLE_TRANSCRIPT = `So today we're going to dive into something that I think a lot of people struggle with — the concept of deliberate practice. You see, most people assume that just doing something repeatedly makes you better at it. But that's actually a misconception.
+
+Research by Anders Ericsson found that the quality of your practice matters far more than the quantity. When you engage in deliberate practice, you're constantly pushing yourself slightly beyond your current abilities, getting immediate feedback, and mentally focusing on specific aspects you want to improve.
+
+Think about it this way — if you want to become a better public speaker, just giving speeches over and over won't cut it. You need to identify your weaknesses, target them specifically, and track your progress over time. That's the key distinction between naive practice and deliberate practice.`;
+
+// AI mock responses
+const AI_GRAMMAR = {
+  default: `<div class="vocab-item">
+  <div><div class="vocab-word">dive into</div><div class="vocab-def">🔵 구동사 — 어떤 주제나 활동에 깊이 빠져들다</div><div class="vocab-example">"Let's dive into the details." = 세부 사항을 자세히 살펴보겠습니다.</div></div>
+</div>
+<div class="vocab-item">
+  <div><div class="vocab-word">misconception</div><div class="vocab-def">🔴 명사 — 오해, 잘못된 생각 (mis- + conception)</div><div class="vocab-example">a common misconception = 흔한 오해</div></div>
+</div>
+<div class="vocab-item">
+  <div><div class="vocab-word">matters far more than</div><div class="vocab-def">🟢 비교 표현 — ~보다 훨씬 더 중요하다</div><div class="vocab-example">Effort matters far more than talent.</div></div>
+</div>`
+};
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function saveWordbook() {
+  localStorage.setItem('ts_wordbook', JSON.stringify(wordbook));
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+}
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['home','wordbook','quiz'][i] === name);
+  });
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'wordbook') renderWordbook();
+  if (name === 'quiz') renderQuizHome();
+}
+
+// ─── TRANSCRIPT ───────────────────────────────────────────────────────────────
+function loadSample() {
+  document.getElementById('paste-input').value = SAMPLE_TRANSCRIPT;
+}
+
+function loadTranscript() {
+  const text = document.getElementById('paste-input').value.trim();
+  if (!text) { toast('텍스트를 입력해주세요'); return; }
+  currentTranscript = text;
+
+  const clean = text.replace(/^\d+:\d+\s*/gm, '').trim();
+  const lines = clean.split(/\n+/).filter(l => l.trim());
+
+  const body = document.getElementById('transcript-body');
+  body.innerHTML = lines.map((line, i) =>
+    `<div class="line" data-line="${i}">${escapeHtml(line)}</div>`
+  ).join('');
+
+  document.getElementById('t-title').textContent = detectTitle(text);
+  updateMeta();
+
+  document.getElementById('view-paste').style.display = 'none';
+  document.getElementById('view-transcript').style.display = 'block';
+
+  setupSelectionHandler();
+}
+
+function detectTitle(text) {
+  const first = text.split(/[.\n]/)[0].trim();
+  if (first.length < 60) return first.replace(/^\d+:\d+\s*/, '');
+  return 'Transcript Study';
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function resetTranscript() {
+  document.getElementById('view-paste').style.display = 'block';
+  document.getElementById('view-transcript').style.display = 'none';
+  document.getElementById('ai-panel').style.display = 'none';
+}
+
+function updateMeta() {
+  const count = wordbook.length;
+  document.getElementById('t-meta').textContent = `오늘 학습 • ${count}개 하이라이트`;
+}
+
+// ─── HIGHLIGHT ───────────────────────────────────────────────────────────────
+function toggleMode(mode) {
+  highlightMode = mode;
+}
+
+let selectedText = '';
+let selectedRange = null;
+
+function setupSelectionHandler() {
+  const body = document.getElementById('transcript-body');
+  
+  body.addEventListener('mouseup', handleSelection);
+  body.addEventListener('touchend', (e) => {
+    setTimeout(() => handleSelection(e), 100);
+  });
+
+  document.addEventListener('mousedown', (e) => {
+    if (!e.target.closest('#sel-popup') && !e.target.closest('#transcript-body')) {
+      hidePopup();
+    }
+  });
+}
+
+function handleSelection() {
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) { hidePopup(); return; }
+  const text = sel.toString().trim();
+  if (!text || text.length < 2) { hidePopup(); return; }
+
+  selectedText = text;
+  selectedRange = sel.getRangeAt(0).cloneRange();
+
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  const popup = document.getElementById('sel-popup');
+  popup.style.top = (rect.top + window.scrollY - 56) + 'px';
+  popup.style.left = (rect.left + rect.width/2) + 'px';
+  popup.classList.add('show');
+}
+
+function hidePopup() {
+  document.getElementById('sel-popup').classList.remove('show');
+  selectedText = '';
+}
+
+function highlightSelected(color) {
+  if (!selectedRange || !selectedText) return;
+  try {
+    const span = document.createElement('mark');
+    span.className = `hl-${color}`;
+    span.dataset.word = selectedText;
+    span.dataset.color = color;
+    selectedRange.surroundContents(span);
+    span.addEventListener('click', () => showWordModal(selectedText, color));
+  } catch(e) {
+    // partial selection across elements
+    toast('단어 또는 짧은 구를 선택해주세요');
+  }
+  window.getSelection().removeAllRanges();
+  hidePopup();
+  updateMeta();
+  toast('하이라이트 완료 ✓');
+}
+
+function saveSelectedWord() {
+  if (!selectedText) return;
+  const word = selectedText.trim();
+  if (!wordbook.find(w => w.word.toLowerCase() === word.toLowerCase())) {
+    wordbook.push({
+      id: generateId(),
+      word,
+      color: 'yellow',
+      def: getDef(word),
+      example: '',
+      context: currentTranscript.slice(
+        Math.max(0, currentTranscript.indexOf(word) - 40),
+        currentTranscript.indexOf(word) + word.length + 40
+      ),
+      learned: false,
+      savedAt: Date.now()
+    });
+    saveWordbook();
+    toast(`"${word}" 저장됨 ✓`);
+  } else {
+    toast('이미 저장된 단어예요');
+  }
+  hidePopup();
+  updateMeta();
+}
+
+function askAISelected() {
+  hidePopup();
+  if (!selectedText) return;
+  const panel = document.getElementById('ai-panel');
+  const title = document.getElementById('ai-panel-title');
+  const body = document.getElementById('ai-panel-body');
+
+  panel.style.display = 'block';
+  title.textContent = `"${selectedText}" AI 해설`;
+  body.innerHTML = `<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div> 분석 중...</div>`;
+  
+  setTimeout(() => {
+    body.innerHTML = `<div class="ai-result">${getAIResponse(selectedText)}</div>`;
+  }, 1200);
+  
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function getAIResponse(word) {
+  const w = word.toLowerCase().trim();
+  const map = {
+    'deliberate practice': `<strong>deliberate practice</strong> (의도적 연습)<br><br>Anders Ericsson이 제시한 개념으로, 단순한 반복이 아닌 <strong>구체적 약점을 목표로 하는 집중 연습</strong>을 의미합니다.<br><br>🔑 <em>deliberate</em> = 의도적인, 신중한 (deliberate = done on purpose)<br>📌 naive practice와 대비되는 개념`,
+    'misconception': `<strong>misconception</strong> /ˌmɪskənˈsepʃn/<br><br>🔤 구조: mis-(잘못된) + conception(개념, 이해)<br>💡 의미: 오해, 잘못된 믿음<br><br>📝 유사어: misunderstanding, false belief<br>✅ <em>common misconception</em> = 흔한 오해 (자주 쓰이는 표현)`,
+    'deliberate': `<strong>deliberate</strong> /dɪˈlɪbərət/<br><br>형용사: 신중한, 의도적인<br>동사: /dɪˈlɪbəreɪt/ 심사숙고하다<br><br>🔑 핵심: "우연이 아닌 목적이 있는"<br>📌 <em>deliberate action</em> = 계획된 행동`,
+  };
+
+  for (const key in map) {
+    if (w.includes(key)) return map[key];
+  }
+  
+  // generic
+  return `<strong>${word}</strong><br><br>
+  💡 문맥 속 의미: 이 단어는 현재 주제의 핵심 개념과 연결되어 있습니다.<br><br>
+  📝 학습 팁: 이 표현을 예문과 함께 단어장에 저장하면 더 효율적으로 기억할 수 있어요.<br><br>
+  <em>더 자세한 해설은 AI 해설 버튼을 눌러보세요.</em>`;
+}
+
+function getDef(word) {
+  const defs = {
+    'deliberate': '의도적인, 신중한; 심사숙고하다',
+    'practice': '연습, 실천; 연습하다',
+    'misconception': '오해, 잘못된 생각',
+    'repeatedly': '반복적으로, 거듭거듭',
+    'quantity': '양, 분량',
+    'quality': '질, 품질',
+    'feedback': '피드백, 반응',
+    'specifically': '구체적으로, 특히',
+    'distinction': '구별, 차이점',
+    'engaging': '매력적인; ~에 참여하는',
+    'naive': '순진한, 경험 없는',
+  };
+  const w = word.toLowerCase();
+  for (const key in defs) {
+    if (w.includes(key)) return defs[key];
+  }
+  return '직접 뜻을 입력해보세요';
+}
+
+// ─── AI PANEL ─────────────────────────────────────────────────────────────────
+function analyzeAI() {
+  const panel = document.getElementById('ai-panel');
+  const title = document.getElementById('ai-panel-title');
+  const body = document.getElementById('ai-panel-body');
+
+  document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('chip-ai').classList.add('active');
+
+  panel.style.display = 'block';
+  aiPanelOpen = true;
+  title.textContent = 'AI 문법 & 표현 해설';
+  body.innerHTML = `<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div> 분석 중...</div>`;
+
+  setTimeout(() => {
+    body.innerHTML = `<div class="ai-result">${AI_GRAMMAR.default}</div>`;
+  }, 1500);
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function analyzeVocab() {
+  const panel = document.getElementById('ai-panel');
+  const title = document.getElementById('ai-panel-title');
+  const body = document.getElementById('ai-panel-body');
+
+  document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+  document.getElementById('chip-vocab').classList.add('active');
+
+  panel.style.display = 'block';
+  title.textContent = '핵심 어휘 분석';
+  body.innerHTML = `<div class="ai-loading"><div class="dots"><span></span><span></span><span></span></div> 어휘 분석 중...</div>`;
+
+  setTimeout(() => {
+    body.innerHTML = `<div class="ai-result">
+      <div class="vocab-item">
+        <div><div class="vocab-word">deliberate <span style="font-size:11px;color:var(--text-muted);font-weight:400">[B2]</span></div><div class="vocab-def">형용사 — 의도적인, 신중한</div><div class="vocab-example">deliberate practice vs naive practice</div></div>
+      </div>
+      <div class="vocab-item">
+        <div><div class="vocab-word">misconception <span style="font-size:11px;color:var(--text-muted);font-weight:400">[C1]</span></div><div class="vocab-def">명사 — 오해, 잘못된 믿음</div><div class="vocab-example">a common misconception about success</div></div>
+      </div>
+      <div class="vocab-item">
+        <div><div class="vocab-word">engage in <span style="font-size:11px;color:var(--text-muted);font-weight:400">[B2]</span></div><div class="vocab-def">구동사 — ~에 참여하다, 종사하다</div><div class="vocab-example">engage in deliberate practice</div></div>
+      </div>
+      <div class="vocab-item">
+        <div><div class="vocab-word">distinction <span style="font-size:11px;color:var(--text-muted);font-weight:400">[C1]</span></div><div class="vocab-def">명사 — 구별, 차이점</div><div class="vocab-example">the key distinction between A and B</div></div>
+      </div>
+    </div>`;
+  }, 1200);
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function toggleAiPanel() {
+  aiPanelOpen = !aiPanelOpen;
+  document.getElementById('ai-panel-body').style.display = aiPanelOpen ? 'block' : 'none';
+  document.getElementById('ai-chevron').textContent = aiPanelOpen ? '▲' : '▼';
+}
+
+// ─── WORDBOOK ─────────────────────────────────────────────────────────────────
+function renderWordbook() {
+  const list = document.getElementById('wordbook-list');
+  const filtered = currentFilter === 'all' ? wordbook
+    : currentFilter === 'review' ? wordbook.filter(w => !w.learned)
+    : wordbook.filter(w => w.color === currentFilter);
+
+  document.getElementById('wb-count').textContent = `${wordbook.length}개 저장됨`;
+  document.getElementById('quiz-start-btn').style.display = wordbook.length >= 2 ? 'block' : 'none';
+
+  const statsBar = document.getElementById('stats-bar');
+  const filterRow = document.getElementById('filter-row');
+  if (wordbook.length > 0) {
+    statsBar.style.display = 'flex';
+    filterRow.style.display = 'flex';
+    document.getElementById('stat-all').textContent = wordbook.length;
+    document.getElementById('stat-learned').textContent = wordbook.filter(w => w.learned).length;
+    document.getElementById('stat-review').textContent = wordbook.filter(w => !w.learned).length;
+  } else {
+    statsBar.style.display = 'none';
+    filterRow.style.display = 'none';
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📝</div><p>트랜스크립트에서 단어를 선택하고<br>+ 저장 버튼을 눌러보세요</p></div>`;
+    return;
+  }
+
+  const colorLabel = { yellow: '단어', blue: '문장', pink: '표현' };
+  list.innerHTML = filtered.map((w, i) => `
+    <div class="word-card ${w.color}-card" onclick="openWordModal(${wordbook.indexOf(w)})">
+      <div class="word-card-content">
+        <div class="word-card-word">${escapeHtml(w.word)} ${w.learned ? '<span style="font-size:11px;color:var(--accent)">✓ 숙지</span>' : ''}</div>
+        <div class="word-card-def">${escapeHtml(w.def)}</div>
+        ${w.context ? `<div class="word-card-context">…${escapeHtml(w.context)}…</div>` : ''}
+      </div>
+      <div class="word-card-actions">
+        <div class="icon-btn" onclick="event.stopPropagation();toggleLearnedIdx(${wordbook.indexOf(w)})" title="숙지">${w.learned ? '✓' : '○'}</div>
+        <div class="icon-btn delete" onclick="event.stopPropagation();deleteWordIdx(${wordbook.indexOf(w)})" title="삭제">✕</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterWords(f, el) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderWordbook();
+}
+
+function openWordModal(idx) {
+  currentWordIdx = idx;
+  const w = wordbook[idx];
+  document.getElementById('modal-word').textContent = w.word;
+  document.getElementById('modal-pos').textContent = w.color === 'yellow' ? 'WORD' : w.color === 'blue' ? 'SENTENCE' : 'EXPRESSION';
+  document.getElementById('modal-def').textContent = w.def;
+  document.getElementById('modal-example').textContent = w.context ? `"…${w.context}…"` : '예문이 없습니다';
+  document.getElementById('modal-source').textContent = `저장일: ${new Date(w.savedAt).toLocaleDateString('ko-KR')}`;
+  document.getElementById('modal-learned-btn').textContent = w.learned ? '✓ 숙지 해제' : '○ 숙지 표시';
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+}
+
+function showWordModal(word, color) {
+  const idx = wordbook.findIndex(w => w.word === word);
+  if (idx >= 0) openWordModal(idx);
+}
+
+function toggleLearned() {
+  if (currentWordIdx === null) return;
+  wordbook[currentWordIdx].learned = !wordbook[currentWordIdx].learned;
+  saveWordbook();
+  document.getElementById('modal-learned-btn').textContent =
+    wordbook[currentWordIdx].learned ? '✓ 숙지 해제' : '○ 숙지 표시';
+  toast(wordbook[currentWordIdx].learned ? '숙지 완료 ✓' : '복습 목록으로 이동');
+}
+
+function toggleLearnedIdx(idx) {
+  wordbook[idx].learned = !wordbook[idx].learned;
+  saveWordbook();
+  renderWordbook();
+  toast(wordbook[idx].learned ? '숙지 완료 ✓' : '복습 목록으로 이동');
+}
+
+function deleteWord() {
+  if (currentWordIdx === null) return;
+  const word = wordbook[currentWordIdx].word;
+  wordbook.splice(currentWordIdx, 1);
+  saveWordbook();
+  document.getElementById('modal-overlay').classList.remove('show');
+  renderWordbook();
+  toast(`"${word}" 삭제됨`);
+}
+
+function deleteWordIdx(idx) {
+  const word = wordbook[idx].word;
+  wordbook.splice(idx, 1);
+  saveWordbook();
+  renderWordbook();
+  toast(`"${word}" 삭제됨`);
+}
+
+// ─── QUIZ ─────────────────────────────────────────────────────────────────────
+function startQuiz() {
+  switchTab('quiz');
+  renderQuizHome();
+}
+
+function renderQuizHome() {
+  const content = document.getElementById('quiz-content');
+  
+  if (wordbook.length < 2) {
+    content.innerHTML = `<div class="quiz-empty"><div class="icon">🎯</div><p>단어장에 2개 이상 저장하면<br>퀴즈를 시작할 수 있어요!</p></div>`;
+    return;
+  }
+
+  // Build quiz questions
+  buildQuiz();
+}
+
+function buildQuiz() {
+  const words = [...wordbook];
+  quizData = words.slice(0, Math.min(10, words.length)).map(w => {
+    const wrong = wordbook.filter(x => x.id !== w.id);
+    const wrongOptions = shuffle(wrong).slice(0, 3).map(x => x.word);
+    const options = shuffle([w.word, ...wrongOptions]);
+    return {
+      question: w.def || '의미를 선택하세요',
+      answer: w.word,
+      options,
+      context: w.context,
+      type: w.color === 'yellow' ? '단어' : w.color === 'blue' ? '문장' : '표현'
+    };
+  });
+
+  quizIdx = 0;
+  quizScore = 0;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  if (quizIdx >= quizData.length) {
+    renderQuizResult();
+    return;
+  }
+
+  quizAnswered = false;
+  const q = quizData[quizIdx];
+  const progress = ((quizIdx / quizData.length) * 100).toFixed(0);
+
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-header">
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${progress}%"></div></div>
+      <div class="quiz-counter">${quizIdx + 1} / ${quizData.length}</div>
+    </div>
+    <div class="quiz-card">
+      <div class="quiz-type">${q.type} 퀴즈</div>
+      <div class="quiz-question">${escapeHtml(q.question)}</div>
+      ${q.context ? `<div class="quiz-context">"…${escapeHtml(q.context)}…"</div>` : ''}
+    </div>
+    <div class="quiz-options">
+      ${q.options.map((opt, i) => `
+        <button class="quiz-option" onclick="answerQuiz(this, '${escapeHtml(opt)}', '${escapeHtml(q.answer)}')">${escapeHtml(opt)}</button>
+      `).join('')}
+    </div>
+    <div class="quiz-feedback" id="quiz-feedback"></div>
+    <div class="quiz-nav" id="quiz-nav" style="display:none">
+      <button class="btn-primary" onclick="nextQuestion()">다음 →</button>
+    </div>
+  `;
+}
+
+function answerQuiz(el, selected, answer) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  document.querySelectorAll('.quiz-option').forEach(b => b.classList.add('disabled'));
+
+  const correct = selected === answer;
+  if (correct) { el.classList.add('correct'); quizScore++; }
+  else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.quiz-option').forEach(b => {
+      if (b.textContent.trim() === answer) b.classList.add('correct');
+    });
+  }
+
+  const feedback = document.getElementById('quiz-feedback');
+  const word = wordbook.find(w => w.word === answer);
+  feedback.innerHTML = correct
+    ? `✅ <strong>정답!</strong> ${word ? word.def : ''}`
+    : `❌ <strong>오답.</strong> 정답은 <strong>${answer}</strong> — ${word ? word.def : ''}`;
+  feedback.classList.add('show');
+
+  document.getElementById('quiz-nav').style.display = 'flex';
+}
+
+function nextQuestion() {
+  quizIdx++;
+  renderQuestion();
+}
+
+function renderQuizResult() {
+  const pct = Math.round((quizScore / quizData.length) * 100);
+  const msg = pct === 100 ? '완벽해요! 🎉' : pct >= 70 ? '잘하셨어요 👍' : '다시 도전해봐요 💪';
+  document.getElementById('quiz-content').innerHTML = `
+    <div class="quiz-result">
+      <div class="score">${pct}<span style="font-size:28px">%</span></div>
+      <p>${quizScore}/${quizData.length} 정답 · ${msg}</p>
+      <button class="btn-primary" onclick="buildQuiz()">다시 풀기</button>
+      <div style="margin-top:10px">
+        <button class="btn-secondary" onclick="switchTab('wordbook')" style="width:100%">단어장 복습하기</button>
+      </div>
+    </div>
+  `;
+}
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#sel-popup') && !e.target.closest('#transcript-body')) {
+    hidePopup();
+  }
+});
+</script>
+</body>
+</html>
